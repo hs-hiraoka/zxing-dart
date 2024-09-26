@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../../common/bit_source.dart';
 import '../../common/character_set_eci.dart';
 import '../../common/decoder_result.dart';
+import '../../common/segment_info.dart';
 import '../../common/string_utils.dart';
 import '../../decode_hint.dart';
 import '../../format_reader_exception.dart';
@@ -29,6 +30,7 @@ class DecodedBitStreamParser {
     var bits = BitSource(bytes);
     var result = StringBuffer();
     var byteSegments = <Int8List>[];
+    var segments = <SegmentInfo>[];
     var symbolSequence = -1;
     var parityData = -1;
 
@@ -86,19 +88,21 @@ class DecodedBitStreamParser {
             // "Normal" QR code modes:
             // How many characters will follow, encoded in this mode?
             var count = bits.readBits(mode.getCharacterCountBits(version));
+            var resultBuffer = StringBuffer();
             switch (mode) {
               case Mode.numeric:
-                _decodeNumericSegment(bits, result, count);
+                _decodeNumericSegment(bits, resultBuffer, count);
                 break;
               case Mode.alphanumeric:
-                _decodeAlphanumericSegment(bits, result, count, fc1InEffect);
+                _decodeAlphanumericSegment(
+                    bits, resultBuffer, count, fc1InEffect);
                 break;
               case Mode.byte:
-                _decodeByteSegment(bits, result, count, currentCharacterSetECI,
-                    byteSegments, hints);
+                _decodeByteSegment(bits, resultBuffer, count,
+                    currentCharacterSetECI, byteSegments, hints);
                 break;
               case Mode.kanji:
-                _decodeKanjiSegment(bits, result, count);
+                _decodeKanjiSegment(bits, resultBuffer, count);
                 break;
               case Mode.terminator:
               case Mode.fnc1FirstPosition:
@@ -108,6 +112,19 @@ class DecodedBitStreamParser {
               case Mode.hanzi:
                 throw FormatReaderException();
             }
+            var text = mode == Mode.byte ? null : resultBuffer.toString();
+            var byteData = mode == Mode.byte
+                ? byteSegments[byteSegments.length - 1]
+                : null;
+            segments.add(
+              SegmentInfo(
+                mode: mode,
+                count: count,
+                text: text,
+                byteData: byteData,
+              ),
+            );
+            result.write(resultBuffer);
             break;
         }
       } while (mode != Mode.terminator);
@@ -120,6 +137,7 @@ class DecodedBitStreamParser {
         rawBytes: bytes,
         text: result.toString(),
         byteSegments: byteSegments.isEmpty ? null : byteSegments,
+        segments: segments.isEmpty ? null : segments,
         version: version.versionNumber,
         ecLevel: ecLevel?.toString(),
         structuredAppendParity: symbolSequence,

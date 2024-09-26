@@ -22,6 +22,9 @@ enum ResultMetadataType {
   /// raw bytes in the byte segments in the barcode, in order.</p>
   byteSegments,
 
+  /// List of the segment info
+  segments,
+
   /// version number, if applicable.
   version,
 

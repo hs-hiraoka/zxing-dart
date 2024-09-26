@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'segment_info.dart';
+
 /// <p>Encapsulates the result of decoding a matrix of bits. This typically
 /// applies to 2D barcode formats. For now it contains the raw bytes obtained,
 /// as well as a String interpretation of those bytes, if applicable.</p>
@@ -31,6 +33,8 @@ class DecoderResult {
   /// @return arbitrary additional metadata
   Object? other;
 
+  List<SegmentInfo>? segments;
+
   final int structuredAppendParity;
   final int structuredAppendSequenceNumber;
 
@@ -42,6 +46,7 @@ class DecoderResult {
     required this.ecLevel,
     this.structuredAppendParity = -1,
     this.structuredAppendSequenceNumber = -1,
+    this.segments,
   }) : numBits = rawBytes == null ? 0 : 8 * rawBytes.length;
 
   bool get hasStructuredAppend {
