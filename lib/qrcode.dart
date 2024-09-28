@@ -5,4 +5,5 @@ export 'src/qrcode/encoder/encoder.dart' show Encoder;
 export 'src/qrcode/encoder/qr_code.dart' show QRCode;
 export 'src/qrcode/qrcode_reader.dart' show QRCodeReader;
 export 'src/qrcode/decoder/mode.dart' show Mode;
+export 'src/common/segment_info.dart' show SegmentInfo;
 export 'zxing2.dart';
